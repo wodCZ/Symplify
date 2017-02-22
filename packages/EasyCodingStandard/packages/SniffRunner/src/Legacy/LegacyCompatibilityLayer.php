@@ -5,6 +5,7 @@ namespace Symplify\EasyCodingStandard\SniffRunner\Legacy;
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Util\Tokens;
+use Symplify\EasyCodingStandard\SniffRunner\Contract\Sniff\SniffInterface;
 
 final class LegacyCompatibilityLayer
 {
@@ -45,6 +46,7 @@ final class LegacyCompatibilityLayer
 
     private static function setupClassAliases(): void
     {
+        class_alias(SniffInterface::class, Sniff::class);
         class_alias(Sniff::class, 'PHP_CodeSniffer_Sniff');
         class_alias(File::class, 'PHP_CodeSniffer_File');
         class_alias(Tokens::class, 'PHP_CodeSniffer_Tokens');

@@ -2,72 +2,39 @@
 
 namespace Symplify\CodingStandard\Sniffs\Commenting;
 
-use PHP_CodeSniffer\Files\File;
-use PHP_CodeSniffer\Sniffs\AbstractVariableSniff;
+use Symplify\CodingStandard\TokenWrapper\ClassWrapper;
+use Symplify\EasyCodingStandard\SniffRunner\Contract\File\FileInterface;
+use Symplify\EasyCodingStandard\SniffRunner\Contract\Sniff\SniffInterface;
 
 /**
  * Rules:
- * - Property should have docblock comment (except for {@inheritdoc}).
- *
- * @see PHP_CodeSniffer_Standards_AbstractVariableSniff is used, because it's very difficult to
- * separate properties from variables (in args, method etc.). This class does is for us.
+ * - Properties should have doc block comment.
  */
-final class VarPropertyCommentSniff extends AbstractVariableSniff
+final class VarPropertyCommentSniff implements SniffInterface // extends AbstractVariableSniff
 {
     /**
-     * @param File $file
-     * @param int $position
+     * @return int[]
      */
-    protected function processMemberVar(File $file, int $position): void
+    public function register(): array
     {
-        $commentString = $this->getPropertyComment($file, $position);
-
-        if (strpos($commentString, '@var') !== false) {
-            return;
-        }
-
-        $file->addError(
-            'Property should have docblock comment.',
-            $position,
-            self::class
-        );
+        return [T_CLASS];
     }
 
-    /**
-     * @param File $file
-     * @param int $position
-     */
-    protected function processVariable(File $file, int $position): void
+    public function process(FileInterface $file, int $position): void
     {
-    }
+        $classWrapper = ClassWrapper::createFromFileAndPosition($file, $position);
 
-    /**
-     * @param File $file
-     * @param int $position
-     */
-    protected function processVariableInString(File $file, int $position): void
-    {
-    }
+        foreach ($classWrapper->getProperties() as $propertyWrapper) {
+            dump($propertyWrapper->getName());
 
-    private function getPropertyComment(File $file, int $position): string
-    {
-        $commentEnd = $file->findPrevious([T_DOC_COMMENT_CLOSE_TAG], $position);
-        if ($commentEnd === false) {
-            return '';
+            if ( ! $propertyWrapper->hasDocBlock()) {
+                $file->addError('Property should have docblock comment.', $position, self::class);
+                continue;
+            }
+
+            if ($propertyWrapper->getDocBlock()->isSingleLine()) {
+                $file->addError('Property should have docblock comment.', $position, self::class);
+            }
         }
-
-        $tokens = $file->getTokens();
-        if ($tokens[$commentEnd]['code'] !== T_DOC_COMMENT_CLOSE_TAG) {
-            return '';
-        }
-
-        // Make sure the comment we have found belongs to us.
-        $commentFor = $file->findNext(T_VARIABLE, $commentEnd + 1);
-        if ($commentFor !== $position) {
-            return '';
-        }
-
-        $commentStart = $file->findPrevious(T_DOC_COMMENT_OPEN_TAG, $position);
-        return $file->getTokensAsString($commentStart, $commentEnd - $commentStart + 1);
     }
 }

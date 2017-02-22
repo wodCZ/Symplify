@@ -69,6 +69,13 @@ final class PropertyWrapper
         return $this->position;
     }
 
+    public function hasDocBlock(): bool
+    {
+        $docBlockCloseTag = $this->file->findPrevious([T_DOC_COMMENT_CLOSE_TAG], $this->position);
+
+        return ($this->tokens[$this->position]['line'] - $this->tokens[$docBlockCloseTag]['line']) === 1;
+    }
+
     /**
      * @return DocBlockWrapper|false
      */

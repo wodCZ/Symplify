@@ -76,6 +76,8 @@ final class ClassWrapper
 
         $classOpenerPosition = $this->classToken['scope_opener'] + 1;
 
+        // @todo: exclude inside properties
+
         while (($propertyTokenPointer = $this->file->findNext(
             T_VARIABLE,
             $classOpenerPosition,
